@@ -5,6 +5,7 @@ export interface Player {
   world_ranking: number | null;
   photo_url: string | null;
   is_active: boolean;
+  salary: number;
   created_at: string;
 }
 
@@ -30,6 +31,7 @@ export interface Pool {
   pick_deadline: string;
   max_picks: number;
   scoring_keep: number;
+  salary_cap: number;
   created_by: string;
   created_at: string;
 }
