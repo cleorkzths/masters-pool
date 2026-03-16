@@ -95,7 +95,7 @@ export default async function FieldPage({
               <div className="font-medium text-sm text-gray-900">{player.full_name}</div>
               <div className="text-xs text-gray-400">{player.country}</div>
             </div>
-            {player.roundScores.map((score, rIdx) => (
+            {player.roundScores.map((score: number | null, rIdx: number) => (
               <div key={rIdx} className="text-right">
                 <ToParBadge toPar={score} />
               </div>
