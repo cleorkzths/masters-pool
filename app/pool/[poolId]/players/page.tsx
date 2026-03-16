@@ -42,7 +42,7 @@ export default async function FieldPage({
       scoreMap.get(player.id)?.get(r.id) ?? null
     );
     const total = roundScores.some((s) => s !== null)
-      ? roundScores.reduce((sum, s) => sum + (s ?? 0), 0)
+      ? roundScores.reduce((sum: number, s) => sum + (s ?? 0), 0)
       : null;
     return { ...player, roundScores, total };
   });
