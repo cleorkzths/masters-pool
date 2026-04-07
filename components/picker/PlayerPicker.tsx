@@ -29,7 +29,7 @@ export default function PlayerPicker({
   const salaryCap = pool.salary_cap ?? 1000;
 
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("ranking");
+  const [sortKey, setSortKey] = useState<SortKey>("salary_desc");
   const [selectedIds, setSelectedIds] = useState<string[]>(
     existingPicks.sort((a, b) => a.pick_slot - b.pick_slot).map((p) => p.player_id)
   );
