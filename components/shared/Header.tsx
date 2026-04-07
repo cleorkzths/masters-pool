@@ -38,6 +38,12 @@ export default function Header({ pool, poolId }: HeaderProps) {
             Find my picks
           </Link>
           <Link
+            href={`/pool/${poolId}/about`}
+            className="text-sm text-green-100 hover:text-white transition-colors hidden sm:block"
+          >
+            About
+          </Link>
+          <Link
             href={`/pool/${poolId}/pick`}
             className="text-sm px-4 py-1.5 bg-masters-yellow text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors"
           >
