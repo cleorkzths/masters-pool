@@ -77,6 +77,7 @@ export interface EntryRoundResult {
     full_name: string;
     to_par: number | null;
     is_dropped: boolean;
+    is_fill_in: boolean; // true when player has no score — +10 fill-in applied
   }[];
 }
 

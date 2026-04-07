@@ -45,8 +45,10 @@ export default async function AboutPage({
             {pool.scoring_keep} players for each round. Lower is better.
           </li>
           <li>
-            If a player withdraws or misses the cut, they score <strong className="text-gray-800">+99</strong> for
-            remaining rounds — effectively always dropped.
+            If a player withdraws or misses the cut, they receive a{" "}
+            <strong className="text-amber-500">+10 fill-in score</strong> for remaining rounds —
+            shown in orange so you can spot them. This keeps your team alive even if not everyone
+            makes the cut, instead of disqualifying you with a +99.
           </li>
         </ol>
       </section>
@@ -75,6 +77,9 @@ export default async function AboutPage({
         <p className="text-sm text-gray-600">
           Your Round 1 score = <strong>-4 + -3 + -2 + +1 = <span className="text-masters-green">-8</span></strong>.
           Players E and F are dropped (worst 2).
+          If Player F had missed the cut instead, their score would show as{" "}
+          <span className="text-amber-500 font-mono font-semibold">+10*</span> — still dropped here,
+          but they won&apos;t tank your team in later rounds if your other players are scoring well.
         </p>
       </section>
 

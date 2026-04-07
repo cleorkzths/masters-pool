@@ -1,6 +1,6 @@
 import type { EntryRoundResult } from "./types";
 
-const WD_PENALTY = 99;
+const WD_PENALTY = 10; // fill-in score for missed cut / WD — keeps teams alive
 
 export function formatToPar(n: number | null): string {
   if (n === null) return "-";
@@ -35,9 +35,7 @@ export function computeRoundScore(
   const dropped = sorted.slice(keepCount);
 
   const keptIds = new Set(kept.map((p) => p.player_id));
-  const roundTotal = kept.every((p) => p.to_par !== null)
-    ? kept.reduce((sum, p) => sum + p.effective, 0)
-    : null;
+  const roundTotal = kept.reduce((sum, p) => sum + p.effective, 0);
 
   return {
     round_id: 0, // caller sets this
@@ -49,6 +47,7 @@ export function computeRoundScore(
       full_name: p.full_name,
       to_par: p.to_par,
       is_dropped: !keptIds.has(p.player_id),
+      is_fill_in: p.to_par === null, // +10 fill-in used (WD/missed cut)
     })),
   };
 }

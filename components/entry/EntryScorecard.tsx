@@ -12,6 +12,7 @@ interface EntryRoundResult {
     full_name: string;
     to_par: number | null;
     is_dropped: boolean;
+    is_fill_in: boolean;
   }[];
 }
 
@@ -153,12 +154,13 @@ export default function EntryScorecard({
                       className={cn(
                         "text-sm font-mono",
                         pd.is_dropped && "line-through opacity-40",
-                        !pd.is_dropped && pd.to_par !== null && pd.to_par < 0 && "text-red-600",
-                        !pd.is_dropped && pd.to_par !== null && pd.to_par > 0 && "text-gray-500"
+                        !pd.is_dropped && pd.is_fill_in && "text-amber-500",
+                        !pd.is_dropped && !pd.is_fill_in && pd.to_par !== null && pd.to_par < 0 && "text-red-600",
+                        !pd.is_dropped && !pd.is_fill_in && pd.to_par !== null && pd.to_par > 0 && "text-gray-500"
                       )}
-                      title={pd.is_dropped ? "Score dropped (not in best 4)" : "Score counted"}
+                      title={pd.is_fill_in ? "Fill-in score (+10) — player missed cut or WD" : pd.is_dropped ? "Score dropped (not in best 4)" : "Score counted"}
                     >
-                      {pd.to_par === null ? "—" : pd.to_par === 0 ? "E" : pd.to_par > 0 ? `+${pd.to_par}` : `${pd.to_par}`}
+                      {pd.is_fill_in ? "+10*" : pd.to_par === 0 ? "E" : pd.to_par! > 0 ? `+${pd.to_par}` : `${pd.to_par}`}
                     </span>
                   ) : (
                     <span className="text-gray-300 text-sm">—</span>
@@ -181,6 +183,7 @@ export default function EntryScorecard({
 
       <p className="text-xs text-gray-400 text-center">
         Strikethrough scores are dropped — only the best 4 per round count toward your total.
+        {" "}<span className="text-amber-400">+10*</span> = fill-in score for a missed cut or WD.
       </p>
     </div>
   );
