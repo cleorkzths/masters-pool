@@ -21,25 +21,25 @@ export default function Header({ pool, poolId }: HeaderProps) {
         <nav className="flex items-center gap-4">
           <Link
             href={`/pool/${poolId}`}
-            className="text-sm text-green-100 hover:text-white transition-colors hidden sm:block"
+            className="text-sm text-green-100 hover:text-white transition-colors"
           >
             Leaderboard
           </Link>
           <Link
             href={`/pool/${poolId}/players`}
-            className="text-sm text-green-100 hover:text-white transition-colors hidden sm:block"
+            className="text-sm text-green-100 hover:text-white transition-colors"
           >
             Field
           </Link>
           <Link
             href={`/pool/${poolId}/find`}
-            className="text-sm text-green-100 hover:text-white transition-colors hidden sm:block"
+            className="text-sm text-green-100 hover:text-white transition-colors"
           >
             Find my picks
           </Link>
           <Link
             href={`/pool/${poolId}/about`}
-            className="text-sm text-green-100 hover:text-white transition-colors hidden sm:block"
+            className="text-sm text-green-100 hover:text-white transition-colors"
           >
             About
           </Link>
