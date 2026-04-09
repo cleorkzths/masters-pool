@@ -704,13 +704,17 @@ function FieldTab({
             );
           })}
 
-          {/* Total */}
+          {/* Total — sum round scores directly so it updates live mid-round */}
           <div className="text-right">
             {player.wd ? (
               <span className="text-xs text-gray-400">{player.position}</span>
-            ) : (
-              <ToParBadge toPar={player.toPar} />
-            )}
+            ) : (() => {
+              const played = liveActiveRounds
+                .map((r) => player.rounds[r - 1])
+                .filter((s): s is number => s !== null);
+              if (played.length === 0) return <span className="text-sm text-gray-300">—</span>;
+              return <ToParBadge toPar={played.reduce((sum, s) => sum + s, 0)} />;
+            })()}
           </div>
         </div>
       ))}
