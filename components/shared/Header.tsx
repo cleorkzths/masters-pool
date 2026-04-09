@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { Pool } from "@/lib/types";
+import { isDeadlinePassed } from "@/lib/utils";
 
 interface HeaderProps {
   pool: Pool;
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 export default function Header({ pool, poolId }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const picksClosed = isDeadlinePassed(pool.pick_deadline);
 
   return (
     <header className="masters-header text-white shadow-lg">
@@ -37,9 +39,15 @@ export default function Header({ pool, poolId }: HeaderProps) {
           <Link href={`/pool/${poolId}/about`} className="text-sm text-green-100 hover:text-white transition-colors">
             About
           </Link>
-          <Link href={`/pool/${poolId}/pick`} className="text-sm px-4 py-1.5 bg-masters-yellow text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors">
-            Make My Picks
-          </Link>
+          {picksClosed ? (
+            <span className="text-sm px-4 py-1.5 bg-gray-200 text-gray-400 font-semibold rounded-lg cursor-not-allowed select-none">
+              🔒 Picks Locked
+            </span>
+          ) : (
+            <Link href={`/pool/${poolId}/pick`} className="text-sm px-4 py-1.5 bg-masters-yellow text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors">
+              Make My Picks
+            </Link>
+          )}
         </nav>
 
         {/* Mobile hamburger */}
@@ -75,9 +83,15 @@ export default function Header({ pool, poolId }: HeaderProps) {
           <Link href={`/pool/${poolId}/about`} className="text-sm text-green-100 hover:text-white transition-colors" onClick={() => setMenuOpen(false)}>
             About
           </Link>
-          <Link href={`/pool/${poolId}/pick`} className="text-sm px-4 py-1.5 bg-masters-yellow text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors text-center" onClick={() => setMenuOpen(false)}>
-            Make My Picks
-          </Link>
+          {picksClosed ? (
+            <span className="text-sm px-4 py-1.5 bg-gray-200 text-gray-400 font-semibold rounded-lg cursor-not-allowed select-none text-center">
+              🔒 Picks Locked
+            </span>
+          ) : (
+            <Link href={`/pool/${poolId}/pick`} className="text-sm px-4 py-1.5 bg-masters-yellow text-gray-900 font-semibold rounded-lg hover:bg-yellow-300 transition-colors text-center" onClick={() => setMenuOpen(false)}>
+              Make My Picks
+            </Link>
+          )}
         </div>
       )}
     </header>

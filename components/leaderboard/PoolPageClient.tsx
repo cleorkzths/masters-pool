@@ -260,7 +260,11 @@ export default function PoolPageClient({
               My Team
             </Link>
           )}
-          {!deadlinePassed && (
+          {deadlinePassed ? (
+            <span className="px-5 py-2 bg-gray-100 text-gray-400 font-semibold rounded-lg text-sm cursor-not-allowed select-none">
+              🔒 Picks Locked
+            </span>
+          ) : (
             <Link
               href={`/pool/${poolId}/pick`}
               className="px-5 py-2 bg-masters-green text-white font-semibold rounded-lg hover:bg-green-800 transition-colors text-sm"
