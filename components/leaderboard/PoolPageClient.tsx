@@ -213,6 +213,13 @@ export default function PoolPageClient({
 
     const playerById = new Map(players.map((p) => [p.id, p]));
 
+    const getLiveTotal = (ep: EspnPlayer): number | null => {
+      const played = liveActiveRounds
+        .map((r) => ep.rounds[r - 1])
+        .filter((s): s is number => s !== null);
+      return played.length === 0 ? null : played.reduce((sum, s) => sum + s, 0);
+    };
+
     return [...source]
       .map((ep) => {
         const id = nameToId.get(normalizeName(ep.name));
@@ -220,12 +227,14 @@ export default function PoolPageClient({
         return { ...ep, country: db?.country ?? "" };
       })
       .sort((a, b) => {
-        if (a.toPar === null && b.toPar === null) return 0;
-        if (a.toPar === null) return 1;
-        if (b.toPar === null) return -1;
-        return a.toPar - b.toPar;
+        const ta = getLiveTotal(a);
+        const tb = getLiveTotal(b);
+        if (ta === null && tb === null) return 0;
+        if (ta === null) return 1;
+        if (tb === null) return -1;
+        return ta - tb;
       });
-  }, [espnData, players, nameToId]);
+  }, [espnData, players, nameToId, liveActiveRounds]);
 
   // ── Status banner ──────────────────────────────────────────────────────────
 
