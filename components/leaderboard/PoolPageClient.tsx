@@ -683,31 +683,33 @@ function WormChart({
 
   const top5 = leaderboard.slice(0, 5);
 
-  // Build data points: "Start" (all 0) + one point per completed round
-  const chartData = [
-    {
-      label: "Start",
-      ...Object.fromEntries(top5.map((e) => [e.display_name, 0])),
-    },
-    ...liveActiveRounds.map((roundId, idx) => {
-      const point: Record<string, string | number> = { label: `R${roundId}` };
-      for (const entry of top5) {
-        let cumulative = 0;
-        for (let i = 0; i <= idx; i++) {
-          const rr = entry.round_results.find((r) => r.round_id === liveActiveRounds[i]);
-          cumulative += rr?.round_total ?? 0;
-        }
-        point[entry.display_name] = cumulative;
+  // Format a decimal to-par value, e.g. -5.5 → "-5.5", 0 → "E", +2.0 → "+2.0"
+  const fmtAvg = (v: number) => {
+    if (v === 0) return "E";
+    const s = v.toFixed(1);
+    return v > 0 ? `+${s}` : s;
+  };
+
+  // Build data points: one per completed round, Y = running avg score per round
+  const chartData = liveActiveRounds.map((roundId, idx) => {
+    const roundsPlayed = idx + 1;
+    const point: Record<string, string | number> = { label: `R${roundId}` };
+    for (const entry of top5) {
+      let total = 0;
+      for (let i = 0; i <= idx; i++) {
+        const rr = entry.round_results.find((r) => r.round_id === liveActiveRounds[i]);
+        total += rr?.round_total ?? 0;
       }
-      return point;
-    }),
-  ];
+      point[entry.display_name] = parseFloat((total / roundsPlayed).toFixed(2));
+    }
+    return point;
+  });
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
       <div className="flex items-center justify-between mb-1">
         <h3 className="text-sm font-semibold text-gray-700">Team Score Progression</h3>
-        <span className="text-xs text-gray-400">Top 5 teams · lower is better</span>
+        <span className="text-xs text-gray-400">Top 5 teams · avg score per round</span>
       </div>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
@@ -720,14 +722,17 @@ function WormChart({
           />
           <YAxis
             reversed
-            tickFormatter={(v) => formatToPar(v)}
+            tickFormatter={(v) => fmtAvg(v)}
             tick={{ fontSize: 11, fill: "#6b7280" }}
             axisLine={false}
             tickLine={false}
-            width={36}
+            width={40}
           />
           <Tooltip
-            formatter={(value, name) => [formatToPar(typeof value === "number" ? value : null), name as string]}
+            formatter={(value, name) => [
+              typeof value === "number" ? fmtAvg(value) : "—",
+              name as string,
+            ]}
             contentStyle={{
               borderRadius: "0.5rem",
               border: "1px solid #e5e7eb",
