@@ -7,6 +7,16 @@ import { buildLeaderboard, formatToPar } from "@/lib/scoring";
 import ToParBadge from "@/components/shared/ToParBadge";
 import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import { cn } from "@/lib/utils";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,7 +115,7 @@ export default function PoolPageClient({
   myEntryId,
   deadlinePassed,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"standings" | "field" | "picks">("standings");
+  const [activeTab, setActiveTab] = useState<"standings" | "field" | "picks" | "chart">("standings");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [espnData, setEspnData] = useState<EspnData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -351,6 +361,17 @@ export default function PoolPageClient({
           <span className="sm:hidden">Picks</span>
           <span className="hidden sm:inline">Pick Summary</span>
         </button>
+        <button
+          onClick={() => setActiveTab("chart")}
+          className={cn(
+            "px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+            activeTab === "chart"
+              ? "border-masters-green text-masters-green"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          )}
+        >
+          Chart
+        </button>
         <div className="ml-auto flex items-center gap-2 pb-1">
           {lastUpdated && (
             <span className="text-xs text-gray-400 hidden sm:block">
@@ -393,6 +414,10 @@ export default function PoolPageClient({
 
       {activeTab === "picks" && (
         <PickSummaryTab entries={entries} totalEntries={entries.length} />
+      )}
+
+      {activeTab === "chart" && (
+        <WormChart leaderboard={leaderboard} liveActiveRounds={liveActiveRounds} />
       )}
     </div>
   );
@@ -632,6 +657,101 @@ function ExpandedEntry({
           Full scorecard →
         </Link>
       </div>
+    </div>
+  );
+}
+
+// ── Worm Chart Tab ────────────────────────────────────────────────────────────
+
+const WORM_COLORS = ["#1a7a4a", "#c62828", "#1565c0", "#e65100", "#6a1b9a"];
+
+function WormChart({
+  leaderboard,
+  liveActiveRounds,
+}: {
+  leaderboard: LeaderboardEntry[];
+  liveActiveRounds: number[];
+}) {
+  if (liveActiveRounds.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center py-16 text-gray-400">
+        <div className="text-5xl mb-4">📈</div>
+        <p>Chart will appear once the tournament begins.</p>
+      </div>
+    );
+  }
+
+  const top5 = leaderboard.slice(0, 5);
+
+  // Build data points: "Start" (all 0) + one point per completed round
+  const chartData = [
+    {
+      label: "Start",
+      ...Object.fromEntries(top5.map((e) => [e.display_name, 0])),
+    },
+    ...liveActiveRounds.map((roundId, idx) => {
+      const point: Record<string, string | number> = { label: `R${roundId}` };
+      for (const entry of top5) {
+        let cumulative = 0;
+        for (let i = 0; i <= idx; i++) {
+          const rr = entry.round_results.find((r) => r.round_id === liveActiveRounds[i]);
+          cumulative += rr?.round_total ?? 0;
+        }
+        point[entry.display_name] = cumulative;
+      }
+      return point;
+    }),
+  ];
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-sm font-semibold text-gray-700">Team Score Progression</h3>
+        <span className="text-xs text-gray-400">Top 5 teams · lower is better</span>
+      </div>
+      <ResponsiveContainer width="100%" height={320}>
+        <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 12, fill: "#6b7280" }}
+            axisLine={{ stroke: "#e5e7eb" }}
+            tickLine={false}
+          />
+          <YAxis
+            tickFormatter={(v) => formatToPar(v)}
+            tick={{ fontSize: 11, fill: "#6b7280" }}
+            axisLine={false}
+            tickLine={false}
+            width={36}
+          />
+          <Tooltip
+            formatter={(value, name) => [formatToPar(typeof value === "number" ? value : null), name as string]}
+            contentStyle={{
+              borderRadius: "0.5rem",
+              border: "1px solid #e5e7eb",
+              fontSize: "0.75rem",
+            }}
+          />
+          <Legend
+            wrapperStyle={{ fontSize: "0.75rem", paddingTop: "0.75rem" }}
+            formatter={(value, entry) => (
+              <span style={{ color: entry.color }}>{value}</span>
+            )}
+          />
+          {top5.map((entry, idx) => (
+            <Line
+              key={entry.entry_id}
+              type="monotone"
+              dataKey={entry.display_name}
+              stroke={WORM_COLORS[idx]}
+              strokeWidth={idx === 0 ? 2.5 : 1.75}
+              dot={{ r: 4, strokeWidth: 0, fill: WORM_COLORS[idx] }}
+              activeDot={{ r: 5 }}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
