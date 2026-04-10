@@ -70,7 +70,11 @@ export async function GET() {
       // Pad to 4 rounds
       while (rounds.length < 4) rounds.push(null);
 
-      return { name, toPar, position, status: statusName, rounds, wd };
+      const headshot: string | null =
+        comp.athlete?.headshot?.href ??
+        (comp.athlete?.id ? `https://a.espncdn.com/i/headshots/golf/players/full/${comp.athlete.id}.png` : null);
+
+      return { name, toPar, position, status: statusName, rounds, wd, headshot };
     });
 
     return Response.json({

@@ -45,6 +45,7 @@ interface EspnPlayer {
   status: string;
   rounds: (number | null)[];
   wd: boolean;
+  headshot: string | null;
 }
 
 interface EspnData {
@@ -232,7 +233,7 @@ export default function PoolPageClient({
       .map((ep) => {
         const id = nameToId.get(normalizeName(ep.name));
         const db = id ? playerById.get(id) : undefined;
-        return { ...ep, country: db?.country ?? "", photo_url: db?.photo_url ?? null };
+        return { ...ep, country: db?.country ?? "", photo_url: db?.photo_url ?? ep.headshot ?? null };
       })
       .sort((a, b) => {
         const ta = getLiveTotal(a);
