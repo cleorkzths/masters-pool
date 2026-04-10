@@ -719,6 +719,7 @@ function WormChart({
             tickLine={false}
           />
           <YAxis
+            reversed
             tickFormatter={(v) => formatToPar(v)}
             tick={{ fontSize: 11, fill: "#6b7280" }}
             axisLine={false}
@@ -742,7 +743,7 @@ function WormChart({
           {top5.map((entry, idx) => (
             <Line
               key={entry.entry_id}
-              type="monotone"
+              type="linear"
               dataKey={entry.display_name}
               stroke={WORM_COLORS[idx]}
               strokeWidth={idx === 0 ? 2.5 : 1.75}
