@@ -5,6 +5,14 @@ import ToParBadge from "@/components/shared/ToParBadge";
 
 export const revalidate = 60;
 
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/ø/g, "o").replace(/æ/g, "ae").replace(/å/g, "a")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z\s]/g, "").trim().replace(/\s+/g, " ");
+}
+
 export default async function FieldPage({
   params,
 }: {
@@ -13,7 +21,7 @@ export default async function FieldPage({
   const { poolId } = await params;
   const supabase = await createClient();
 
-  const [{ data: pool }, { data: players }, { data: rounds }, { data: allScores }] =
+  const [{ data: pool }, { data: players }, { data: rounds }, { data: allScores }, espnRes] =
     await Promise.all([
       supabase.from("pools").select("*").eq("id", poolId).single(),
       supabase
@@ -23,7 +31,24 @@ export default async function FieldPage({
         .order("world_ranking", { ascending: true, nullsFirst: false }),
       supabase.from("rounds").select("*").order("id"),
       supabase.from("scores").select("*"),
+      fetch("https://site.api.espn.com/apis/site/v2/sports/golf/leaderboard?league=pga", {
+        next: { revalidate: 60 },
+        headers: { Accept: "application/json" },
+      }).catch(() => null),
     ]);
+
+  // Build name → headshot map from ESPN
+  const espnHeadshots = new Map<string, string>();
+  if (espnRes?.ok) {
+    const espnData = await espnRes.json().catch(() => null);
+    for (const comp of espnData?.events?.[0]?.competitions?.[0]?.competitors ?? []) {
+      const name: string = comp.athlete?.displayName ?? "";
+      const headshot: string | null =
+        comp.athlete?.headshot?.href ??
+        (comp.athlete?.id ? `https://a.espncdn.com/i/headshots/golf/players/full/${comp.athlete.id}.png` : null);
+      if (name && headshot) espnHeadshots.set(normalizeName(name), headshot);
+    }
+  }
 
   if (!pool) notFound();
 
@@ -87,7 +112,7 @@ export default async function FieldPage({
             <div className="w-10">
               <PlayerAvatar
                 name={player.full_name}
-                photoUrl={player.photo_url}
+                photoUrl={player.photo_url ?? espnHeadshots.get(normalizeName(player.full_name)) ?? null}
                 size={36}
               />
             </div>
