@@ -645,15 +645,18 @@ function PickSummaryTab({
   entries: EntryWithPicks[];
   totalEntries: number;
 }) {
+  const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);
+
   const pickCounts = useMemo(() => {
-    const counts = new Map<string, { name: string; count: number }>();
+    const counts = new Map<string, { name: string; count: number; pickers: string[] }>();
     for (const entry of entries) {
       for (const pick of entry.picks) {
         const existing = counts.get(pick.player_id);
         if (existing) {
           existing.count++;
+          existing.pickers.push(entry.display_name);
         } else {
-          counts.set(pick.player_id, { name: pick.full_name, count: 1 });
+          counts.set(pick.player_id, { name: pick.full_name, count: 1, pickers: [entry.display_name] });
         }
       }
     }
@@ -682,32 +685,62 @@ function PickSummaryTab({
         </span>
       </div>
       <div className="divide-y divide-gray-50">
-        {pickCounts.map(({ name, count }, idx) => {
+        {pickCounts.map(({ name, count, pickers }, idx) => {
           const pct = Math.round((count / totalEntries) * 100);
           const barWidth = Math.round((count / maxCount) * 100);
+          const isExpanded = expandedPlayer === name;
           return (
-            <div key={name} className={cn("flex items-center gap-3 px-4 py-2.5", idx % 2 === 1 && "bg-gray-50/30")}>
-              {/* Rank */}
-              <span className="w-5 text-xs font-medium text-gray-400 shrink-0">{idx + 1}</span>
+            <div key={name}>
+              <button
+                onClick={() => setExpandedPlayer(isExpanded ? null : name)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-50",
+                  idx % 2 === 1 && !isExpanded && "bg-gray-50/30"
+                )}
+              >
+                {/* Rank */}
+                <span className="w-5 text-xs font-medium text-gray-400 shrink-0">{idx + 1}</span>
 
-              {/* Name + bar */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-900 truncate">{name}</span>
+                {/* Name + bar */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-sm font-medium text-gray-900 truncate">{name}</span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-3 h-3 text-gray-400 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
+                    )}
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-masters-green transition-all"
+                      style={{ width: `${barWidth}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-masters-green transition-all"
-                    style={{ width: `${barWidth}%` }}
-                  />
-                </div>
-              </div>
 
-              {/* Count + pct */}
-              <div className="shrink-0 text-right">
-                <span className="text-sm font-semibold text-gray-800">{count}</span>
-                <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
-              </div>
+                {/* Count + pct */}
+                <div className="shrink-0 text-right">
+                  <span className="text-sm font-semibold text-gray-800">{count}</span>
+                  <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
+                </div>
+              </button>
+
+              {/* Expanded pickers list */}
+              {isExpanded && (
+                <div className="px-4 pb-3 pt-1 bg-gray-50 border-t border-gray-100">
+                  <div className="flex flex-wrap gap-1.5 pl-8">
+                    {pickers.map((picker) => (
+                      <span
+                        key={picker}
+                        className="px-2.5 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700"
+                      >
+                        {picker}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
