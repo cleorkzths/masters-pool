@@ -103,7 +103,7 @@ export default function PoolPageClient({
   myEntryId,
   deadlinePassed,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"standings" | "field">("standings");
+  const [activeTab, setActiveTab] = useState<"standings" | "field" | "picks">("standings");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [espnData, setEspnData] = useState<EspnData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -316,24 +316,38 @@ export default function PoolPageClient({
         <button
           onClick={() => setActiveTab("standings")}
           className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            "px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
             activeTab === "standings"
               ? "border-masters-green text-masters-green"
               : "border-transparent text-gray-500 hover:text-gray-700"
           )}
         >
-          Pool Standings
+          <span className="sm:hidden">Standings</span>
+          <span className="hidden sm:inline">Pool Standings</span>
         </button>
         <button
           onClick={() => setActiveTab("field")}
           className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            "px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
             activeTab === "field"
               ? "border-masters-green text-masters-green"
               : "border-transparent text-gray-500 hover:text-gray-700"
           )}
         >
-          Field Scores
+          <span className="sm:hidden">Field</span>
+          <span className="hidden sm:inline">Field Scores</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("picks")}
+          className={cn(
+            "px-3 sm:px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+            activeTab === "picks"
+              ? "border-masters-green text-masters-green"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          )}
+        >
+          <span className="sm:hidden">Picks</span>
+          <span className="hidden sm:inline">Pick Summary</span>
         </button>
         <div className="ml-auto flex items-center gap-2 pb-1">
           {lastUpdated && (
@@ -373,6 +387,10 @@ export default function PoolPageClient({
           liveActiveRounds={liveActiveRounds}
           loading={!espnData && !espnError}
         />
+      )}
+
+      {activeTab === "picks" && (
+        <PickSummaryTab entries={entries} totalEntries={entries.length} />
       )}
     </div>
   );
@@ -613,6 +631,89 @@ function ExpandedEntry({
         >
           Full scorecard →
         </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── Pick Summary Tab ──────────────────────────────────────────────────────────
+
+function PickSummaryTab({
+  entries,
+  totalEntries,
+}: {
+  entries: EntryWithPicks[];
+  totalEntries: number;
+}) {
+  const pickCounts = useMemo(() => {
+    const counts = new Map<string, { name: string; count: number }>();
+    for (const entry of entries) {
+      for (const pick of entry.picks) {
+        const existing = counts.get(pick.player_id);
+        if (existing) {
+          existing.count++;
+        } else {
+          counts.set(pick.player_id, { name: pick.full_name, count: 1 });
+        }
+      }
+    }
+    return [...counts.values()].sort((a, b) => b.count - a.count);
+  }, [entries]);
+
+  const maxCount = pickCounts[0]?.count ?? 1;
+
+  if (totalEntries === 0) {
+    return (
+      <div className="text-center py-16 text-gray-400">
+        <div className="text-5xl mb-4">⛳</div>
+        <p>No entries yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          Player
+        </span>
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          Picked by
+        </span>
+      </div>
+      <div className="divide-y divide-gray-50">
+        {pickCounts.map(({ name, count }, idx) => {
+          const pct = Math.round((count / totalEntries) * 100);
+          const barWidth = Math.round((count / maxCount) * 100);
+          return (
+            <div key={name} className={cn("flex items-center gap-3 px-4 py-2.5", idx % 2 === 1 && "bg-gray-50/30")}>
+              {/* Rank */}
+              <span className="w-5 text-xs font-medium text-gray-400 shrink-0">{idx + 1}</span>
+
+              {/* Name + bar */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-900 truncate">{name}</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-masters-green transition-all"
+                    style={{ width: `${barWidth}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Count + pct */}
+              <div className="shrink-0 text-right">
+                <span className="text-sm font-semibold text-gray-800">{count}</span>
+                <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
+        {totalEntries} {totalEntries === 1 ? "entry" : "entries"} · {pickCounts.length} unique players picked
       </div>
     </div>
   );
