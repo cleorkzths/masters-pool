@@ -69,6 +69,13 @@ interface Props {
 function normalizeName(name: string): string {
   return name
     .toLowerCase()
+    // Transliterate non-decomposing chars that NFD won't strip (e.g. Danish ø → o)
+    .replace(/ø/g, "o")
+    .replace(/æ/g, "ae")
+    .replace(/å/g, "a")
+    .replace(/ð/g, "d")
+    .replace(/þ/g, "th")
+    .replace(/ß/g, "ss")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z\s]/g, "")
