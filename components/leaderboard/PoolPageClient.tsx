@@ -446,17 +446,15 @@ function StandingsTab({
               )}
             >
               <div className="flex items-center">
-                <span
-                  className={cn(
-                    "text-sm font-bold",
-                    idx === 0 && "text-yellow-600",
-                    idx === 1 && "text-gray-400",
-                    idx === 2 && "text-amber-700",
-                    idx > 2 && "text-gray-400"
-                  )}
-                >
-                  {pos}
-                </span>
+                {idx === 0 ? (
+                  <span className="text-lg leading-none">🥇</span>
+                ) : idx === 1 ? (
+                  <span className="text-lg leading-none">🥈</span>
+                ) : idx === 2 ? (
+                  <span className="text-lg leading-none">🥉</span>
+                ) : (
+                  <span className="text-sm font-bold text-gray-400">{pos}</span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
