@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { buildLeaderboard, formatToPar } from "@/lib/scoring";
 import ToParBadge from "@/components/shared/ToParBadge";
+import PlayerAvatar from "@/components/shared/PlayerAvatar";
 import { cn } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -231,7 +232,7 @@ export default function PoolPageClient({
       .map((ep) => {
         const id = nameToId.get(normalizeName(ep.name));
         const db = id ? playerById.get(id) : undefined;
-        return { ...ep, country: db?.country ?? "" };
+        return { ...ep, country: db?.country ?? "", photo_url: db?.photo_url ?? null };
       })
       .sort((a, b) => {
         const ta = getLiveTotal(a);
@@ -757,7 +758,7 @@ function FieldTab({
   liveActiveRounds,
   loading,
 }: {
-  players: (EspnPlayer & { country: string })[] | null;
+  players: (EspnPlayer & { country: string; photo_url: string | null })[] | null;
   liveActiveRounds: number[];
   loading: boolean;
 }) {
@@ -824,12 +825,15 @@ function FieldTab({
             )}
           </div>
 
-          {/* Name + country */}
-          <div className="min-w-0">
-            <div className="text-sm font-medium text-gray-900 truncate">{player.name}</div>
-            {player.country && (
-              <div className="text-xs text-gray-400">{player.country}</div>
-            )}
+          {/* Avatar + name + country */}
+          <div className="flex items-center gap-2 min-w-0">
+            <PlayerAvatar name={player.name} photoUrl={player.photo_url} size={32} />
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-gray-900 truncate">{player.name}</div>
+              {player.country && (
+                <div className="text-xs text-gray-400">{player.country}</div>
+              )}
+            </div>
           </div>
 
           {/* Per-round scores */}
