@@ -950,16 +950,18 @@ function FieldTab({
   }
 
   const numRounds = liveActiveRounds.length;
-  const gridClass =
+  // Mobile: always pos + player + total (3 cols). sm+: add per-round columns.
+  const smGridClass =
     numRounds === 0
-      ? "grid-cols-[2rem_1fr_4rem]"
+      ? "sm:grid-cols-[2.5rem_1fr_4rem]"
       : numRounds === 1
-      ? "grid-cols-[2.5rem_1fr_3.5rem_4rem]"
+      ? "sm:grid-cols-[2.5rem_1fr_3.5rem_4rem]"
       : numRounds === 2
-      ? "grid-cols-[2.5rem_1fr_3.5rem_3.5rem_4rem]"
+      ? "sm:grid-cols-[2.5rem_1fr_3.5rem_3.5rem_4rem]"
       : numRounds === 3
-      ? "grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem]"
-      : "grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_3.5rem_4rem]";
+      ? "sm:grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem]"
+      : "sm:grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_3.5rem_4rem]";
+  const gridClass = `grid-cols-[2rem_1fr_4rem] ${smGridClass}`;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -968,7 +970,7 @@ function FieldTab({
         <div>Pos</div>
         <div>Player</div>
         {liveActiveRounds.map((r) => (
-          <div key={r} className="text-right">R{r}</div>
+          <div key={r} className="hidden sm:block text-right">R{r}</div>
         ))}
         <div className="text-right">Total</div>
       </div>
@@ -979,13 +981,8 @@ function FieldTab({
         return (
         <div key={player.name}>
           {showCutLine && (
-            <div className={cn("grid items-center px-4 py-2 bg-gray-100 border-y border-gray-200", gridClass)}>
-              <div />
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide col-span-1">
-                — Missed Cut —
-              </div>
-              {liveActiveRounds.map((_, i) => <div key={i} />)}
-              <div />
+            <div className="px-4 py-2 bg-gray-100 border-y border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              — Missed Cut —
             </div>
           )}
           <div
@@ -1017,11 +1014,11 @@ function FieldTab({
             </div>
           </div>
 
-          {/* Per-round scores */}
+          {/* Per-round scores — hidden on mobile */}
           {liveActiveRounds.map((_, rIdx) => {
             const score = player.rounds[rIdx];
             return (
-              <div key={rIdx} className="text-right">
+              <div key={rIdx} className="hidden sm:block text-right">
                 <span
                   className={cn(
                     "text-sm font-mono",
