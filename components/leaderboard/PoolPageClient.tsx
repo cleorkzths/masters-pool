@@ -463,12 +463,17 @@ function StandingsTab({
   const hasScores = liveActiveRounds.length > 0;
   const showCutInfo = playerCutMap.size > 0 && [...playerCutMap.values()].some((v) => !v);
 
+  const gridCols = showCutInfo
+    ? "grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_5rem_6rem_6rem]"
+    : "grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_6rem_6rem]";
+
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       {/* Header row */}
-      <div className="grid grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_6rem_6rem] px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <div className={cn("grid px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide", gridCols)}>
         <div>Pos</div>
         <div>Name</div>
+        {showCutInfo && <div className="hidden sm:block text-right">Cut</div>}
         <div className="hidden sm:block text-right">Rounds</div>
         <div className="text-right">Score</div>
       </div>
@@ -477,6 +482,9 @@ function StandingsTab({
         const isMe = entry.entry_id === myEntryId;
         const isExpanded = expandedId === entry.entry_id;
         const pos = positionLabel(entry.position, idx, leaderboard);
+        const madeCut = showCutInfo
+          ? entry.picks.filter((p) => playerCutMap.get(p.player_id) !== false).length
+          : null;
 
         return (
           <div key={entry.entry_id}>
@@ -484,7 +492,8 @@ function StandingsTab({
             <button
               onClick={() => onToggle(entry.entry_id)}
               className={cn(
-                "w-full grid grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_6rem_6rem] px-4 py-3.5 border-b border-gray-50 transition-colors text-left",
+                "w-full grid px-4 py-3.5 border-b border-gray-50 transition-colors text-left",
+                gridCols,
                 isMe ? "bg-yellow-50 hover:bg-yellow-100" : "hover:bg-gray-50",
                 isExpanded && "border-b-0"
               )}
@@ -501,39 +510,31 @@ function StandingsTab({
                 )}
               </div>
 
-              <div className="flex flex-col justify-center min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className={cn("font-medium text-gray-900 truncate", isMe && "font-bold")}>
-                    {entry.display_name}
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={cn("font-medium text-gray-900 truncate", isMe && "font-bold")}>
+                  {entry.display_name}
+                </span>
+                {isMe && (
+                  <span className="text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                    You
                   </span>
-                  {isMe && (
-                    <span className="text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full font-medium shrink-0">
-                      You
-                    </span>
+                )}
+                <span className="ml-1 text-gray-400 shrink-0">
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
                   )}
-                  <span className="ml-1 text-gray-400 shrink-0">
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
+                </span>
+              </div>
+
+              {showCutInfo && (
+                <div className="hidden sm:flex items-center justify-end">
+                  <span className="text-sm text-gray-400">
+                    {madeCut}/{entry.picks.length}
                   </span>
                 </div>
-                {showCutInfo && (() => {
-                  const made = entry.picks.filter(
-                    (p) => playerCutMap.get(p.player_id) !== false
-                  ).length;
-                  const total = entry.picks.length;
-                  return (
-                    <span className={cn(
-                      "text-xs mt-0.5",
-                      made < total ? "text-amber-600" : "text-gray-400"
-                    )}>
-                      {made}/{total} made cut
-                    </span>
-                  );
-                })()}
-              </div>
+              )}
 
               <div className="hidden sm:flex items-center justify-end">
                 <span className="text-sm text-gray-400">
