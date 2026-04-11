@@ -224,6 +224,18 @@ export default function PoolPageClient({
     [entries, liveScoresMap, liveActiveRounds, pool.scoring_keep]
   );
 
+  // ── Cut status map (player_id → true=active, false=cut/WD) ────────────────
+
+  const playerCutMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    if (!espnData?.players?.length) return map;
+    for (const ep of espnData.players) {
+      const id = nameToId.get(normalizeName(ep.name));
+      if (id) map.set(id, !ep.wd);
+    }
+    return map;
+  }, [espnData, nameToId]);
+
   // ── Field tab: ESPN players sorted by score ────────────────────────────────
 
   const fieldPlayers = useMemo(() => {
@@ -246,6 +258,7 @@ export default function PoolPageClient({
         return { ...ep, country: db?.country ?? "", photo_url: db?.photo_url ?? ep.headshot ?? null };
       })
       .sort((a, b) => {
+        if (a.wd !== b.wd) return a.wd ? 1 : -1;
         const ta = getLiveTotal(a);
         const tb = getLiveTotal(b);
         if (ta === null && tb === null) return 0;
@@ -401,6 +414,7 @@ export default function PoolPageClient({
           myEntryId={myEntryId}
           expandedId={expandedId}
           onToggle={(id) => setExpandedId(expandedId === id ? null : id)}
+          playerCutMap={playerCutMap}
         />
       )}
 
@@ -434,6 +448,7 @@ function StandingsTab({
   myEntryId,
   expandedId,
   onToggle,
+  playerCutMap,
 }: {
   leaderboard: LeaderboardEntry[];
   liveActiveRounds: number[];
@@ -441,10 +456,12 @@ function StandingsTab({
   myEntryId?: string;
   expandedId: string | null;
   onToggle: (id: string) => void;
+  playerCutMap: Map<string, boolean>;
 }) {
   if (leaderboard.length === 0) return null;
 
   const hasScores = liveActiveRounds.length > 0;
+  const showCutInfo = playerCutMap.size > 0 && [...playerCutMap.values()].some((v) => !v);
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -484,22 +501,38 @@ function StandingsTab({
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className={cn("font-medium text-gray-900", isMe && "font-bold")}>
-                  {entry.display_name}
-                </span>
-                {isMe && (
-                  <span className="text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full font-medium">
-                    You
+              <div className="flex flex-col justify-center min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={cn("font-medium text-gray-900 truncate", isMe && "font-bold")}>
+                    {entry.display_name}
                   </span>
-                )}
-                <span className="ml-1 text-gray-400">
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
+                  {isMe && (
+                    <span className="text-xs bg-yellow-200 text-yellow-800 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                      You
+                    </span>
                   )}
-                </span>
+                  <span className="ml-1 text-gray-400 shrink-0">
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </span>
+                </div>
+                {showCutInfo && (() => {
+                  const made = entry.picks.filter(
+                    (p) => playerCutMap.get(p.player_id) !== false
+                  ).length;
+                  const total = entry.picks.length;
+                  return (
+                    <span className={cn(
+                      "text-xs mt-0.5",
+                      made < total ? "text-amber-600" : "text-gray-400"
+                    )}>
+                      {made}/{total} made cut
+                    </span>
+                  );
+                })()}
               </div>
 
               <div className="hidden sm:flex items-center justify-end">
@@ -932,15 +965,28 @@ function FieldTab({
         <div className="text-right">Total</div>
       </div>
 
-      {players.map((player, idx) => (
-        <div
-          key={player.name}
-          className={cn(
-            "grid items-center px-4 py-3 border-b border-gray-50",
-            gridClass,
-            idx % 2 === 1 && "bg-gray-50/30"
+      {players.map((player, idx) => {
+        const firstCutIdx = players.findIndex((p) => p.wd);
+        const showCutLine = firstCutIdx !== -1 && idx === firstCutIdx;
+        return (
+        <div key={player.name}>
+          {showCutLine && (
+            <div className={cn("grid items-center px-4 py-2 bg-gray-100 border-y border-gray-200", gridClass)}>
+              <div />
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide col-span-1">
+                — Missed Cut —
+              </div>
+              {liveActiveRounds.map((_, i) => <div key={i} />)}
+              <div />
+            </div>
           )}
-        >
+          <div
+            className={cn(
+              "grid items-center px-4 py-3 border-b border-gray-50",
+              gridClass,
+              player.wd ? "opacity-50" : idx % 2 === 1 ? "bg-gray-50/30" : ""
+            )}
+          >
           {/* Position */}
           <div className="text-xs font-medium text-gray-500">
             {player.wd ? (
@@ -996,7 +1042,9 @@ function FieldTab({
             })()}
           </div>
         </div>
-      ))}
+        </div>
+        );
+      })}
     </div>
   );
 }
