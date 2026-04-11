@@ -950,7 +950,17 @@ function FieldTab({
   }
 
   const numRounds = liveActiveRounds.length;
-  // Mobile: always pos + player + total (3 cols). sm+: add per-round columns.
+  // Mobile: tight columns (no avatar, smaller rounds). sm+: full widths with avatar.
+  const mobileGridClass =
+    numRounds === 0
+      ? "grid-cols-[1.5rem_1fr_3rem]"
+      : numRounds === 1
+      ? "grid-cols-[1.5rem_1fr_2.5rem_3rem]"
+      : numRounds === 2
+      ? "grid-cols-[1.5rem_1fr_2.5rem_2.5rem_3rem]"
+      : numRounds === 3
+      ? "grid-cols-[1.5rem_1fr_2.5rem_2.5rem_2.5rem_3rem]"
+      : "grid-cols-[1.5rem_1fr_2.5rem_2.5rem_2.5rem_2.5rem_3rem]";
   const smGridClass =
     numRounds === 0
       ? "sm:grid-cols-[2.5rem_1fr_4rem]"
@@ -961,7 +971,7 @@ function FieldTab({
       : numRounds === 3
       ? "sm:grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem]"
       : "sm:grid-cols-[2.5rem_1fr_3.5rem_3.5rem_3.5rem_3.5rem_4rem]";
-  const gridClass = `grid-cols-[2rem_1fr_4rem] ${smGridClass}`;
+  const gridClass = `${mobileGridClass} ${smGridClass}`;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -970,7 +980,7 @@ function FieldTab({
         <div>Pos</div>
         <div>Player</div>
         {liveActiveRounds.map((r) => (
-          <div key={r} className="hidden sm:block text-right">R{r}</div>
+          <div key={r} className="text-right">R{r}</div>
         ))}
         <div className="text-right">Total</div>
       </div>
@@ -1003,25 +1013,27 @@ function FieldTab({
             )}
           </div>
 
-          {/* Avatar + name + country */}
+          {/* Avatar (desktop only) + name + country */}
           <div className="flex items-center gap-2 min-w-0">
-            <PlayerAvatar name={player.name} photoUrl={player.photo_url} size={32} />
+            <div className="hidden sm:block shrink-0">
+              <PlayerAvatar name={player.name} photoUrl={player.photo_url} size={32} />
+            </div>
             <div className="min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">{player.name}</div>
+              <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">{player.name}</div>
               {player.country && (
-                <div className="text-xs text-gray-400">{player.country}</div>
+                <div className="text-xs text-gray-400 hidden sm:block">{player.country}</div>
               )}
             </div>
           </div>
 
-          {/* Per-round scores — hidden on mobile */}
+          {/* Per-round scores */}
           {liveActiveRounds.map((_, rIdx) => {
             const score = player.rounds[rIdx];
             return (
-              <div key={rIdx} className="hidden sm:block text-right">
+              <div key={rIdx} className="text-right">
                 <span
                   className={cn(
-                    "text-sm font-mono",
+                    "text-xs sm:text-sm font-mono",
                     score === null && "text-gray-300",
                     score !== null && score < 0 && "text-red-600 font-semibold",
                     score !== null && score === 0 && "text-gray-700",
