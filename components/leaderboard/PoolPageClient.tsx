@@ -510,7 +510,8 @@ function StandingsTab({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex flex-col justify-center min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                 <span className={cn("font-medium text-gray-900 truncate", isMe && "font-bold")}>
                   {entry.display_name}
                 </span>
@@ -526,6 +527,12 @@ function StandingsTab({
                     <ChevronDown className="w-4 h-4" />
                   )}
                 </span>
+                </div>
+                {showCutInfo && (
+                  <span className="sm:hidden text-xs text-gray-400 mt-0.5">
+                    {madeCut}/{entry.picks.length} made cut
+                  </span>
+                )}
               </div>
 
               {showCutInfo && (
