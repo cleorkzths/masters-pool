@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import ArchivePanel from "./ArchivePanel";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -38,7 +39,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Quick links */}
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-4 gap-4">
         <Link href="/admin/scores" className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
           <div className="text-2xl mb-2">📊</div>
           <div className="font-semibold text-gray-900">Enter Scores</div>
@@ -54,6 +55,7 @@ export default async function AdminDashboard() {
           <div className="font-semibold text-gray-900">Manage Entries</div>
           <div className="text-sm text-gray-500 mt-1">View all picks, mark paid</div>
         </Link>
+        <ArchivePanel pools={(pools ?? []).map((p) => ({ id: p.id, name: p.name, year: p.year }))} />
       </div>
 
       {/* Pools */}

@@ -39,6 +39,9 @@ export default function Header({ pool, poolId }: HeaderProps) {
           <Link href={`/pool/${poolId}/about`} className="text-sm text-green-100 hover:text-white transition-colors">
             About
           </Link>
+          <Link href="/archive" className="text-sm text-green-100 hover:text-white transition-colors">
+            History
+          </Link>
           {picksClosed ? (
             <span className="text-sm px-4 py-1.5 bg-gray-200 text-gray-400 font-semibold rounded-lg cursor-not-allowed select-none">
               🔒 Picks Locked
@@ -82,6 +85,9 @@ export default function Header({ pool, poolId }: HeaderProps) {
           </Link>
           <Link href={`/pool/${poolId}/about`} className="text-sm text-green-100 hover:text-white transition-colors" onClick={() => setMenuOpen(false)}>
             About
+          </Link>
+          <Link href="/archive" className="text-sm text-green-100 hover:text-white transition-colors" onClick={() => setMenuOpen(false)}>
+            History
           </Link>
           {picksClosed ? (
             <span className="text-sm px-4 py-1.5 bg-gray-200 text-gray-400 font-semibold rounded-lg cursor-not-allowed select-none text-center">
