@@ -107,7 +107,7 @@ export default function PlayerPicker({
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Left: player list */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 order-2 lg:order-1">
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">
             {existingEntry ? "Edit Your Team" : "Make Your Picks"}
@@ -172,8 +172,8 @@ export default function PlayerPicker({
       </div>
 
       {/* Right: salary + picks panel */}
-      <div className="lg:w-72 lg:flex-shrink-0">
-        <div className="lg:sticky lg:top-6">
+      <div className="lg:w-72 lg:flex-shrink-0 order-1 lg:order-2">
+        <div className="sticky top-0 z-20 lg:top-6 lg:shadow-none shadow-md rounded-xl">
           <SelectedTeam
             players={selectedPlayers}
             maxPicks={maxPicks}
